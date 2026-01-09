@@ -8,9 +8,8 @@ from wordcloud import WordCloud
 import spacy
 import re
 
-# ---------------------------
 # Page Config
-# ---------------------------
+
 st.set_page_config(
     page_title="AI Echo - Sentiment Analysis",
     layout="wide"
@@ -22,18 +21,18 @@ st.write(
     "Machine Learning, and Deep Learning"
 )
 
-# ---------------------------
+
 # Load spaCy Model
-# ---------------------------
+
 @st.cache_resource
 def load_spacy():
     return spacy.load("en_core_web_sm")
 
 nlp = load_spacy()
 
-# ---------------------------
+
 # Text Cleaning (SAME AS COLAB)
-# ---------------------------
+
 def clean_text(text):
     text = str(text).lower()
     text = re.sub(r'[^a-z\s]', '', text)
@@ -47,9 +46,8 @@ def clean_text(text):
 
     return " ".join(tokens)
 
-# ---------------------------
 # Load Data & Model
-# ---------------------------
+
 @st.cache_data
 def load_data():
     return pd.read_csv("cleaned_reviews.csv")
@@ -67,9 +65,9 @@ label_mapping = {
     2: "Positive"
 }
 
-# ---------------------------
+
 # Sidebar Navigation
-# ---------------------------
+
 menu = st.sidebar.radio(
     "Navigation",
     [
@@ -79,9 +77,8 @@ menu = st.sidebar.radio(
     ]
 )
 
-# ===========================
 # PAGE 1: Project Overview
-# ===========================
+
 if menu == "Project Overview":
     st.header("📌 Project Overview")
 
@@ -104,9 +101,9 @@ if menu == "Project Overview":
     st.subheader("Dataset Preview")
     st.dataframe(df.head(10))
 
-# ===========================
+
 # PAGE 2: EDA Dashboard
-# ===========================
+
 elif menu == "EDA Dashboard":
     st.header("📊 Exploratory Data Analysis")
 
@@ -163,9 +160,8 @@ elif menu == "EDA Dashboard":
     else:
         st.info("No negative reviews available for WordCloud.")
 
-# ===========================
 # PAGE 3: Sentiment Prediction
-# ===========================
+
 elif menu == "Sentiment Prediction":
     st.header("🧠 Sentiment Prediction")
 
@@ -188,18 +184,18 @@ elif menu == "Sentiment Prediction":
     st.markdown("---")
     st.header("📌 Key Sentiment Analysis Questions & Insights")
 
-    # 1️⃣ Overall sentiment
+    # 1️ Overall sentiment
     st.subheader("1. Overall Sentiment of User Reviews")
     sentiment_counts = df["sentiment"].map(label_mapping).value_counts()
     st.bar_chart(sentiment_counts)
 
-    # 2️⃣ Sentiment vs Rating
+    # 2️ Sentiment vs Rating
     st.subheader("2. Sentiment Variation by Rating")
     sentiment_rating = df.groupby(["rating", "sentiment"]).size().unstack().fillna(0)
     sentiment_rating.columns = sentiment_rating.columns.map(label_mapping)
     st.bar_chart(sentiment_rating)
 
-    # 3️⃣ Keywords by Sentiment
+    # 3️ Keywords by Sentiment
     st.subheader("3. Keywords Associated with Each Sentiment")
     col1, col2, col3 = st.columns(3)
 
@@ -214,27 +210,27 @@ elif menu == "Sentiment Prediction":
             st.markdown(f"**{title} Reviews**")
             st.image(wc.to_array())
 
-    # 4️⃣ Sentiment over time
+    # 4️ Sentiment over time
     st.subheader("4. Sentiment Trend Over Time")
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     time_sentiment = df.groupby([df["date"].dt.to_period("M"), "sentiment"]).size().unstack().fillna(0)
     time_sentiment.columns = time_sentiment.columns.map(label_mapping)
     st.line_chart(time_sentiment)
 
-    # 5️⃣ Verified vs Non-Verified
+    # 5️ Verified vs Non-Verified
     st.subheader("5. Verified vs Non-Verified Sentiment")
     verified_sent = df.groupby(["verified_purchase", "sentiment"]).size().unstack().fillna(0)
     verified_sent.columns = verified_sent.columns.map(label_mapping)
     st.bar_chart(verified_sent)
 
-    # 6️⃣ Review Length vs Sentiment
+    # 6️ Review Length vs Sentiment
     st.subheader("6. Review Length vs Sentiment")
     df["review_length"] = df["review"].astype(str).apply(len)
     length_sent = df.groupby("sentiment")["review_length"].mean()
     length_sent.index = length_sent.index.map(label_mapping)
     st.bar_chart(length_sent)
 
-    # 7️⃣ Location vs Sentiment
+    # 7️ Location vs Sentiment
     st.subheader("7. Location-wise Sentiment")
     top_locations = df["location"].value_counts().head(5).index
     loc_sent = df[df["location"].isin(top_locations)].groupby(
@@ -243,20 +239,20 @@ elif menu == "Sentiment Prediction":
     loc_sent.columns = loc_sent.columns.map(label_mapping)
     st.bar_chart(loc_sent)
 
-    # 8️⃣ Platform vs Sentiment
+    # 8️ Platform vs Sentiment
     st.subheader("8. Platform-wise Sentiment")
     plat_sent = df.groupby(["platform", "sentiment"]).size().unstack().fillna(0)
     plat_sent.columns = plat_sent.columns.map(label_mapping)
     st.bar_chart(plat_sent)
 
-    # 9️⃣ Version vs Sentiment
+    # 9 Version vs Sentiment
     st.subheader("9. Sentiment by ChatGPT Version")
     df["major_version"] = df["version"].astype(str).str.extract(r"(\d+\.\d+)")
     ver_sent = df.groupby(["major_version", "sentiment"]).size().unstack().fillna(0)
     ver_sent.columns = ver_sent.columns.map(label_mapping)
     st.bar_chart(ver_sent.head(5))
 
-    # 🔟 Negative feedback themes
+    # 10 Negative feedback themes
     st.subheader("10. Common Negative Feedback Themes")
     negative_text = " ".join(df[df["sentiment"] == 0]["clean_review"])
     neg_wc = WordCloud(width=800, height=400, background_color="white").generate(negative_text)
